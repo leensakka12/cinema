@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import "package:http/http.dart" as http;
+import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'movie.dart';
 
@@ -14,14 +14,18 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(
-        primarySwatch: Colors.teal, // Stylish primary color
+        primarySwatch: Colors.orange,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Cinema', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)), // Big centered title
-          backgroundColor: Colors.teal,
-          centerTitle: true,  // Centered title
+          title: const Text(
+            'Cinema',
+            style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600),
+          ),
+          backgroundColor: Colors.orange,
+          centerTitle: true,
+          elevation: 5,
         ),
         body: const Center(
           child: MoviesSection(),
@@ -51,7 +55,6 @@ class _MoviesSectionState extends State<MoviesSection> {
   }
 
   void loadMovies() async {
-
     const url = 'http://localhost/mobile/getMovie.php';
     final response = await http.get(Uri.parse(url));
 
@@ -71,7 +74,6 @@ class _MoviesSectionState extends State<MoviesSection> {
   }
 
   void searchMovies(String name) async {
-
     String url = 'http://localhost/mobile/search.php?name=$name';
     final response = await http.get(Uri.parse(url));
 
@@ -111,11 +113,11 @@ class _MoviesSectionState extends State<MoviesSection> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Receipt"),
+          title: const Text("Receipt"),
           content: Text(receipt),
           actions: <Widget>[
             TextButton(
-              child: Text("Close"),
+              child: const Text("Close"),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -132,75 +134,91 @@ class _MoviesSectionState extends State<MoviesSection> {
       children: [
         Padding(
           padding: const EdgeInsets.all(16.0),
-          child: TextField(
-            controller: searchController,
-            decoration: InputDecoration(
-              labelText: 'Search Movies',
-              hintText: 'Enter movie name...',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              filled: true,
-              fillColor: Colors.teal.shade50, // Light background color for the search bar
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.orange.shade50,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.3),
+                  spreadRadius: 2,
+                  blurRadius: 5,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
-            onChanged: (name) {
-              searchMovies(name);
-            },
+            child: TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                labelText: 'Search Movies',
+                labelStyle: const TextStyle(color: Colors.orange),
+                hintText: 'Enter movie name...',
+                hintStyle: const TextStyle(color: Colors.grey),
+                prefixIcon: const Icon(Icons.search, color: Colors.orange),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(vertical: 14.0, horizontal: 20.0),
+              ),
+              onChanged: (name) {
+                searchMovies(name);
+              },
+            ),
           ),
         ),
-        const SizedBox(
-          height: 20,
-        ),
+        const SizedBox(height: 20),
         Expanded(
           child: ListView.builder(
             itemCount: movies.length,
             itemBuilder: (context, index) {
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                elevation: 5,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(16),
-                  title: Text(
-                    movies[index].name,
-                    style: const TextStyle(
-                        fontSize: 22, fontWeight: FontWeight.bold), // Bigger font for movie name
-                    textAlign: TextAlign.center, // Centered movie name
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Category: ${movies[index].category}',
+              return Center(
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.7,
+                  child: Card(
+                    margin: const EdgeInsets.symmetric(vertical: 10),
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(16),
+                      title: Text(
+                        movies[index].name,
                         style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w400),
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.orange,
+                        ),
                       ),
-                      Text(
-                        'Seats left: ${movies[index].quantity}',
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w400),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Category: ${movies[index].category}',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          Text(
+                            'Quantity: ${movies[index].quantity}',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          Text(
+                            'Price: \$${movies[index].price.toStringAsFixed(2)}',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ],
                       ),
-                      Text(
-                        'Price: \$${movies[index].price.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w400),
+                      trailing: Checkbox(
+                        value: selectedMovies.contains(movies[index]),
+                        onChanged: (bool? selected) {
+                          setState(() {
+                            if (selected != null && selected) {
+                              selectedMovies.add(movies[index]);
+                            } else {
+                              selectedMovies.remove(movies[index]);
+                            }
+                            calculateTotalPrice();
+                          });
+                        },
                       ),
-                    ],
-                  ),
-                  trailing: Checkbox(
-                    value: selectedMovies.contains(movies[index]),
-                    onChanged: (bool? selected) {
-                      setState(() {
-                        if (selected != null && selected) {
-                          selectedMovies.add(movies[index]);
-                        } else {
-                          selectedMovies.remove(movies[index]);
-                        }
-                        calculateTotalPrice();
-                      });
-                    },
+                    ),
                   ),
                 ),
               );
@@ -212,7 +230,10 @@ class _MoviesSectionState extends State<MoviesSection> {
           child: Text(
             'Total Price: \$${totalPrice.toStringAsFixed(2)}',
             style: const TextStyle(
-                fontSize: 22, fontWeight: FontWeight.bold, color: Colors.teal),
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.orange,
+            ),
           ),
         ),
         if (totalPrice > 0)
@@ -222,11 +243,11 @@ class _MoviesSectionState extends State<MoviesSection> {
               onPressed: showReceipt,
               child: const Text(
                 'Get Receipt',
-                style: TextStyle(fontSize: 18),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal,
-                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                backgroundColor: Colors.orange,
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
